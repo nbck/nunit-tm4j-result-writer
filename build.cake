@@ -222,6 +222,10 @@ Task("RePackageNuGet")
 					new NuSpecContent { Source = PROJECT_DIR + "LICENSE.txt" },
 					// new NuSpecContent { Source = PROJECT_DIR + "CHANGES.txt" },
 					new NuSpecContent { Source = BIN_SRC + "nunit-tm4j-result-writer.dll", Target = "tools" }
+				},
+				Dependencies = new [] {
+					new NuSpecDependency { Id = "Newtonsoft.Json", Version = "12.0.3", TargetFramework = "net20" },
+					new NuSpecDependency { Id = "NUnit.Engine.Api", Version = "3.7.0", TargetFramework = "net20" }
 				}
 			});
 	});
