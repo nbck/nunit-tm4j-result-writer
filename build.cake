@@ -12,7 +12,7 @@ var UNIT_TEST_ASSEMBLY = "nunit-tm4j-result-writer.tests.dll";
 var GITHUB_SITE = "https://github.com/Ganshorn-Medizin-Electronic/nunit-tm4j-result-writer";
 var README = "https://github.com/Ganshorn-Medizin-Electronic/nunit-tm4j-result-writer/blob/master/README.md";
 var NUGET_ID = "NUnit.Extension.TM4JResultWriter";
-var VERSION = "0.4.0";
+var VERSION = "0.4.4";
 
 // Metadata used in the nuget and chocolatey packages
 var TITLE = "NUnit 3 - NUnit TM4J Result Writer Extension";
@@ -211,7 +211,7 @@ Task("RePackageNuGet")
 				Description = DESCRIPTION,
 				Summary = SUMMARY,
 				ProjectUrl = PROJECT_URL,
-				LicenseUrl = LICENSE_URL,
+				License = new NuSpecLicense {  Type = "expression", Value = "Unlicense" },
 				RequireLicenseAcceptance = false,
 				Copyright = COPYRIGHT,
 				ReleaseNotes = RELEASE_NOTES,
@@ -221,7 +221,12 @@ Task("RePackageNuGet")
 				Files = new [] {
 					new NuSpecContent { Source = PROJECT_DIR + "LICENSE.txt" },
 					// new NuSpecContent { Source = PROJECT_DIR + "CHANGES.txt" },
-					new NuSpecContent { Source = BIN_SRC + "nunit-tm4j-result-writer.dll", Target = "tools" }
+					new NuSpecContent { Source = BIN_SRC + "nunit-tm4j-result-writer.dll", Target = "tools" },
+					new NuSpecContent { Source = BIN_SRC + "Newtonsoft.Json.dll", Target = "tools" }
+				},
+				Dependencies = new [] {
+					new NuSpecDependency { Id = "Newtonsoft.Json", Version = "[12.0.3]" },
+					new NuSpecDependency { Id = "NUnit.Engine.Api", Version = "[3.7.0]" }
 				}
 			});
 	});
