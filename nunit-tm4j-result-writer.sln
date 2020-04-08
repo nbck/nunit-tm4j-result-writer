@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29905.134
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "nunit-tm4j-result-writer", "src\extension\nunit-tm4j-result-writer.csproj", "{819C721E-6C9E-4FAC-8583-C9CA54B308BF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "nunit-tm4j-result-writer.tests", "src\tests\nunit-tm4j-result-writer.tests.csproj", "{42C9F2D4-5FDB-473D-BE6F-A8683D29ED62}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{819C721E-6C9E-4FAC-8583-C9CA54B308BF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{819C721E-6C9E-4FAC-8583-C9CA54B308BF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{819C721E-6C9E-4FAC-8583-C9CA54B308BF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{819C721E-6C9E-4FAC-8583-C9CA54B308BF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{42C9F2D4-5FDB-473D-BE6F-A8683D29ED62}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{42C9F2D4-5FDB-473D-BE6F-A8683D29ED62}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{42C9F2D4-5FDB-473D-BE6F-A8683D29ED62}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{42C9F2D4-5FDB-473D-BE6F-A8683D29ED62}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {D97688A5-096C-4861-A621-4522AE01772F}
+	EndGlobalSection
+EndGlobal

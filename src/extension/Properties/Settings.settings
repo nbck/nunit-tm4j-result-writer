@@ -1,0 +1,19 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="NUnit.Engine.Addins.Properties" GeneratedClassName="Settings">
+  <Profiles />
+  <Settings>
+    <Setting Name="Tm4jTestCaseKeyPattern" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">^[A-Z][A-Z_0-9]+-T[0-9]+$</Value>
+    </Setting>
+    <Setting Name="Environment" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">Windows</Value>
+    </Setting>
+    <Setting Name="CustomPropertiesJson" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">{
+	"CI Server": "Bamboo",
+	"Build number": "env:bamboo.buildNumber",
+	"Build branch": "env:bamboo.repository.git.branch"
+}</Value>
+    </Setting>
+  </Settings>
+</SettingsFile>
