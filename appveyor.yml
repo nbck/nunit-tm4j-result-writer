@@ -1,4 +1,4 @@
-version: 0.5{build}
+version: 0.6{build}
 image: Visual Studio 2019
   
 skip_non_tags: true
@@ -11,11 +11,3 @@ test: off
 
 artifacts:
 - path: output\*.nupkg
-
-deploy:
-  provider: NuGet
-  api_key:
-    secure: kOU0XIA3C3CzXhKPk28ty1DIkOeJNpshuk2yWQDq/rHVeFCf3Y/neNOho9epDa7e
-  skip_symbols: true
-  symbol_server:           # remove to push symbols to SymbolSource.org
-  artifact: /.*\.nupkg/
