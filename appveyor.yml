@@ -1,7 +1,7 @@
-version: 0.6{build}
+version: 0.7.{build}
 image: Visual Studio 2019
   
-skip_non_tags: true
+skip_non_tags: false
 
 build_script:
   - ps: .\build.ps1 -Target "Appveyor" -Configuration Release

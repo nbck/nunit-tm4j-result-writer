@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.Text.RegularExpressions;
     using System.Xml;
+    using JetBrains.Annotations;
     using Newtonsoft.Json;
     using NUnit.Engine.Extensibility;
 
@@ -11,15 +12,134 @@
     [ExtensionProperty("Format", "tm4jtestcycle")]
     public class TM4JTestCycleWriter : JsonResultWriterBase
     {
+        private const string TestCaseStatusPassConst = "Pass";
+
+        private const string TestCaseStatusFailConst = "Fail";
+
         protected override object CreateTm4JResult(List<XmlNode> testNodes)
         {
             string testLocalDateTime = DateTime.Now.ToString("yyyy-MM-ddTHH:mm:sszz00");
+            
+            List<DtoJsonTestCycleResultV2> singleResults = GetSingleTestCaseResults(testNodes, testLocalDateTime);
 
-            var results = new List<object>();
+            if (Properties.Settings.Default.ShallAggregateTestCycleResults)
+            {
+                var results = GetGroupedResults(singleResults, testLocalDateTime);
+                return results;
+            }
+
+            return singleResults;
+        }
+
+        private static List<DtoJsonTestCycleResultV2> GetGroupedResults(
+            List<DtoJsonTestCycleResultV2> singleResults,
+            string testLocalDateTime)
+        {
+            var results = new List<DtoJsonTestCycleResultV2>();
+
+            var groupedTestCases = new Dictionary<string, List<DtoJsonTestCycleResultV2>>();
+
+            foreach (var singleResult in singleResults)
+            {
+                if (groupedTestCases.ContainsKey(singleResult.testCaseKey))
+                {
+                    groupedTestCases[singleResult.testCaseKey].Add(singleResult);
+                }
+                else
+                {
+                    groupedTestCases.Add(singleResult.testCaseKey, new List<DtoJsonTestCycleResultV2>());
+                    groupedTestCases[singleResult.testCaseKey].Add(singleResult);
+                }
+            }
+
+            foreach (var testCaseGroup in groupedTestCases)
+            {
+                if (!(testCaseGroup.Value.Count > 0))
+                {
+                    break;
+                }
+
+                string testCaseGroupKey = testCaseGroup.Key;
+                string testedSoftwareVersion =
+                    SubstituteEnvironmentVariable(Properties.Settings.Default.ReportedSoftwareVersion);
+
+                string groupStatus = string.Empty;
+
+                int resultIndex = 0;
+
+                List<Dictionary<string, string>> scriptResults = new List<Dictionary<string, string>>();
+                foreach (var singleTestCaseResult in testCaseGroup.Value)
+                {
+                    if (singleTestCaseResult.status == TestCaseStatusFailConst)
+                    {
+                        groupStatus = TestCaseStatusFailConst;
+                    }
+
+                    var newScriptResult = new Dictionary<string, string>();
+
+                    string statusVerb;
+                    switch (singleTestCaseResult.status)
+                    {
+                        case TestCaseStatusFailConst:
+                            statusVerb = "failed";
+                            break;
+
+                        case TestCaseStatusPassConst:
+                            statusVerb = "passed";
+                            break;
+
+                        default:
+                            statusVerb = "has unknown result";
+                            break;
+                    }
+
+                    newScriptResult.Add("index", resultIndex++.ToString());
+                    newScriptResult.Add("status", singleTestCaseResult.status);
+                    newScriptResult.Add("comment", $"{singleTestCaseResult.UnitTestFullName} {statusVerb}.");
+                    scriptResults.Add(newScriptResult);
+                }
+
+                var serializerSettings = GetSerializerSettings();
+                Dictionary<string, string> customPropertiesDictionary =
+                    GetCustomPropertiesDictionary(serializerSettings);
+                customPropertiesDictionary = GetUpdatedCustomPropertiesDictionary(customPropertiesDictionary);
+
+                var testCaseGroupResult = new DtoJsonTestCycleResultV2()
+                                              {
+                                                  status = groupStatus,
+                                                  testCaseKey = testCaseGroupKey,
+                                                  version = testedSoftwareVersion,
+                                                  environment =
+                                                      SubstituteEnvironmentVariable(
+                                                          Properties.Settings.Default.Environment),
+                                                  actualStartDate = testLocalDateTime,
+                                                  actualEndDate = testLocalDateTime,
+                                                  customFields = customPropertiesDictionary,
+                                                  scriptResults = scriptResults
+                                              };
+
+                results.Add(testCaseGroupResult);
+            }
+
+            return results;
+        }
+
+        private static List<DtoJsonTestCycleResultV2> GetSingleTestCaseResults(
+            List<XmlNode> testNodes,
+            string testLocalDateTime)
+        {
+            var results = new List<DtoJsonTestCycleResultV2>();
+
+            string testedSoftwareVersion =
+                SubstituteEnvironmentVariable(Properties.Settings.Default.ReportedSoftwareVersion);
+
+
+            var serializerSettings = GetSerializerSettings();
+
             foreach (XmlNode testNode in testNodes)
             {
-                GetTestCaseAttributeValues(testNode, out var name, out var result);
-                VerifyTestCaseProperties(name, result);
+                GetTestCaseAttributeValues(testNode, out var unitTestFullName, out var result);
+                VerifyTestCaseProperties(unitTestFullName, result);
 
                 string description = GetDescription(testNode);
 
@@ -28,24 +148,25 @@
                     break;
                 }
 
-                DtoJsonTestCaseDescription testCaseDescription = null;
-                if (!description.StartsWith("{"))
+                string testCaseKey;
+                if (description.StartsWith("{"))
                 {
-                    break;
+                    var testCaseDescription =
+                        JsonConvert.DeserializeObject<DtoJsonTestCaseDescription>(description, serializerSettings);
+                    testCaseKey = testCaseDescription.TestCaseKey;
+                }
+                else
+                {
+                    testCaseKey = description;
                 }
 
-                var serializerSettings = GetSerializerSettings();
-
-                testCaseDescription =
-                    JsonConvert.DeserializeObject<DtoJsonTestCaseDescription>(description, serializerSettings);
-
-                if (string.IsNullOrEmpty(testCaseDescription.TestCaseKey))
+                if (string.IsNullOrEmpty(testCaseKey))
                 {
                     break;
                 }
 
                 bool isValidTestCaseKey = Regex.IsMatch(
-                    testCaseDescription.TestCaseKey,
+                    testCaseKey,
                     Properties.Settings.Default.Tm4jTestCaseKeyPattern);
 
                 if (!isValidTestCaseKey)
@@ -53,60 +174,42 @@
                     break;
                 }
 
-                string testCaseResult = result == NUnitTestResultAttributeSuccessValueConst ? "Pass" : "Fail";
+                string testCaseStatus = result == NUnitTestResultAttributeSuccessValueConst
+                                            ? TestCaseStatusPassConst
+                                            : TestCaseStatusFailConst;
+
+                //#if DEBUG
+                //                Environment.SetEnvironmentVariable("bamboo.buildNumber", "71");
+                //                Environment.SetEnvironmentVariable("bamboo.repository.git.branch", "lala-branch-1");
+                //#endif
 
                 Dictionary<string, string> customPropertiesDictionary =
                     GetCustomPropertiesDictionary(serializerSettings);
-
-#if DEBUG
-                Environment.SetEnvironmentVariable("bamboo.buildNumber", "71");
-                Environment.SetEnvironmentVariable("bamboo.repository.git.branch", "lala-branch-1");
-#endif
-
                 customPropertiesDictionary = GetUpdatedCustomPropertiesDictionary(customPropertiesDictionary);
 
-                if (customPropertiesDictionary != null)
-                {
-                    DtoJsonTestCycleResultWithCustomProperties testCase = new DtoJsonTestCycleResultWithCustomProperties
-                                                                              {
-                                                                                  status = testCaseResult,
-                                                                                  testCaseKey =
-                                                                                      testCaseDescription.TestCaseKey,
-                                                                                  version =
-                                                                                      testCaseDescription
-                                                                                          .TestedAppVersion,
-                                                                                  environment =
-                                                                                      SubstituteEnvironmentVariable(
-                                                                                          Properties.Settings.Default
-                                                                                              .Environment),
-                                                                                  actualStartDate = testLocalDateTime,
-                                                                                  actualEndDate = testLocalDateTime,
-                                                                                  customFields =
-                                                                                      customPropertiesDictionary
-                                                                              };
+                List<Dictionary<string, string>> scriptResults = new List<Dictionary<string, string>>();
 
-                    results.Add(testCase);
-                }
-                else
-                {
-                    DtoJsonTm4jTestResult testCase = new DtoJsonTm4jTestResult
-                                                         {
-                                                             status = testCaseResult,
-                                                             testCaseKey = testCaseDescription.TestCaseKey,
-                                                             version = testCaseDescription.TestedAppVersion,
-                                                             environment =
-                                                                 SubstituteEnvironmentVariable(
-                                                                     Properties.Settings.Default.Environment),
-                                                             actualStartDate = testLocalDateTime,
-                                                             actualEndDate = testLocalDateTime,
-                                                         };
-                    results.Add(testCase);
-                }
+                var testCaseResult = new DtoJsonTestCycleResultV2
+                                         {
+                                             UnitTestFullName = unitTestFullName,
+                                             status = testCaseStatus,
+                                             testCaseKey = testCaseKey,
+                                             version = testedSoftwareVersion,
+                                             environment =
+                                                 SubstituteEnvironmentVariable(Properties.Settings.Default.Environment),
+                                             actualStartDate = testLocalDateTime,
+                                             actualEndDate = testLocalDateTime,
+                                             customFields = customPropertiesDictionary,
+                                             scriptResults = scriptResults
+                                         };
+
+                results.Add(testCaseResult);
             }
 
             return results;
         }
 
+        [NotNull]
         private static Dictionary<string, string> GetCustomPropertiesDictionary(JsonSerializerSettings serializerSettings)
         {
             try
@@ -121,23 +224,22 @@
             {
             }
 
-            return null;
+            return new Dictionary<string, string>();
         }
 
-        private static Dictionary<string, string> GetUpdatedCustomPropertiesDictionary(Dictionary<string, string> customPropertiesDictionary)
+        [NotNull]
+        private static Dictionary<string, string> GetUpdatedCustomPropertiesDictionary(
+            [NotNull] Dictionary<string, string> customPropertiesDictionary)
         {
-            if (customPropertiesDictionary != null)
+            var customPropertiesUpdatedDictionary = new Dictionary<string, string>();
+            foreach (var kvp in customPropertiesDictionary)
             {
-                var customPropertiesUpdatedDictionary = new Dictionary<string, string>();
-                foreach (var kvp in customPropertiesDictionary)
-                {
-                    string newValue = SubstituteEnvironmentVariable(kvp.Value);
-                    customPropertiesUpdatedDictionary.Add(kvp.Key, newValue);
-                }
-
-                customPropertiesDictionary = customPropertiesUpdatedDictionary;
+                string newValue = SubstituteEnvironmentVariable(kvp.Value);
+                customPropertiesUpdatedDictionary.Add(kvp.Key, newValue);
             }
 
+            customPropertiesDictionary = customPropertiesUpdatedDictionary;
+            
             return customPropertiesDictionary;
         }
 

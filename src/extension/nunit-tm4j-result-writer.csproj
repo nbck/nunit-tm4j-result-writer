@@ -48,6 +48,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DtoJsonTestCycleResultV2.cs" />
     <Compile Include="DtoJsonTestCycleResultWithCustomProperties.cs" />
     <Compile Include="JsonResultWriterBase.cs" />
     <Compile Include="DtoJsonTm4jTestResult.cs" />

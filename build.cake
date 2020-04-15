@@ -12,7 +12,7 @@ var UNIT_TEST_ASSEMBLY = "nunit-tm4j-result-writer.tests.dll";
 var GITHUB_SITE = "https://github.com/Ganshorn-Medizin-Electronic/nunit-tm4j-result-writer";
 var README = "https://github.com/Ganshorn-Medizin-Electronic/nunit-tm4j-result-writer/blob/master/README.md";
 var NUGET_ID = "NUnit.Extension.TM4JResultWriter";
-var VERSION = "0.4.5";
+var VERSION = "0.5.0";
 
 // Metadata used in the nuget and chocolatey packages
 var TITLE = "NUnit 3 - NUnit TM4J Result Writer Extension";

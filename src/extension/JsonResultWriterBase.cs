@@ -78,9 +78,9 @@
             }
         }
 
-        protected static void GetTestCaseAttributeValues(XmlNode testNode, out string name, out string result)
+        protected static void GetTestCaseAttributeValues(XmlNode testNode, out string unitTestFullName, out string result)
         {
-            name = string.Empty;
+            unitTestFullName = string.Empty;
             result = string.Empty;
             foreach (XmlAttribute attribute in testNode.Attributes)
             {
@@ -88,7 +88,7 @@
                 {
                     case NUnitTestNameAttributeConst:
                         {
-                            name = attribute.Value;
+                            unitTestFullName = attribute.Value;
                             break;
                         }
                     case "result":

@@ -50,5 +50,23 @@ namespace NUnit.Engine.Addins.Properties {
                 return ((string)(this["CustomPropertiesJson"]));
             }
         }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool ShallAggregateTestCycleResults {
+            get {
+                return ((bool)(this["ShallAggregateTestCycleResults"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("env:TestedSoftwareVersion")]
+        public string ReportedSoftwareVersion {
+            get {
+                return ((string)(this["ReportedSoftwareVersion"]));
+            }
+        }
     }
 }

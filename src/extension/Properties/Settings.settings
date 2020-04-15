@@ -15,5 +15,11 @@
 	"Build branch": "env:bamboo.repository.git.branch"
 }</Value>
     </Setting>
+    <Setting Name="ShallAggregateTestCycleResults" Type="System.Boolean" Scope="Application">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="ReportedSoftwareVersion" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">env:TestedSoftwareVersion</Value>
+    </Setting>
   </Settings>
 </SettingsFile>
