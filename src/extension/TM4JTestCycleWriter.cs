@@ -63,16 +63,21 @@
                 string testedSoftwareVersion =
                     SubstituteEnvironmentVariable(Properties.Settings.Default.ReportedSoftwareVersion);
 
+                List<Dictionary<string, string>> scriptResults = new List<Dictionary<string, string>>();
                 string groupStatus = string.Empty;
-
                 int resultIndex = 0;
 
-                List<Dictionary<string, string>> scriptResults = new List<Dictionary<string, string>>();
                 foreach (var singleTestCaseResult in testCaseGroup.Value)
                 {
                     if (singleTestCaseResult.status == TestCaseStatusFailConst)
                     {
                         groupStatus = TestCaseStatusFailConst;
+                    }
+
+                    if (singleTestCaseResult.status == TestCaseStatusPassConst
+                        && groupStatus != TestCaseStatusFailConst)
+                    {
+                        groupStatus = TestCaseStatusPassConst;
                     }
 
                     var newScriptResult = new Dictionary<string, string>();
@@ -89,7 +94,7 @@
                             break;
 
                         default:
-                            statusVerb = "has unknown result";
+                            statusVerb = $"has unknown result '{singleTestCaseResult.status}'";
                             break;
                     }
 
@@ -97,6 +102,12 @@
                     newScriptResult.Add("status", singleTestCaseResult.status);
                     newScriptResult.Add("comment", $"{singleTestCaseResult.UnitTestFullName} {statusVerb}.");
                     scriptResults.Add(newScriptResult);
+                }
+
+                // if no test results for test case the test case fails. There is no "undefined" status.
+                if (groupStatus == string.Empty)
+                {
+                    groupStatus = TestCaseStatusFailConst;
                 }
 
                 var serializerSettings = GetSerializerSettings();
